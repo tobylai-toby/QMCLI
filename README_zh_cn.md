@@ -51,3 +51,6 @@ Commands:
 ## 常见问题
 ### 为什么叫这个名字？
 QMCLI代表**Q**uick **M**ine**C**raft **L**auncher **CLI**
+
+---
+QMCLI 非 MINECRAFT 官方产品[产品／服务／活动／等]。未经 MOJANG 或 MICROSOFT 批准，也不与 MOJANG 或 MICROSOFT 关联

@@ -53,3 +53,6 @@ many features are still working in progress
 ## FAQ
 ### Why the name?
 QMCLI is for **Q**uick **M**ine**C**raft **L**auncher **CLI**
+
+---
+QMCLI is not an official product [product/service/activity/etc.] of MINECRAFT. It has not been approved by MOJANG or MICROSOFT and is not associated with MOJANG or MICROSOFT.
