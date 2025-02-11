@@ -76,7 +76,7 @@
     "error_no_game_installed": "no game installed",
 
     "cmd_settings_lang_desc":"modify language",
-    "cmd_settings_lang_select_prompt": "select a language",
+    "cmd_settings_lang_select_prompt": "select a language [current:$1]",
     "cmd_settings_lang_set_success": "set language to $1",
 
     "cmd_users_desc": "add/manage users",
