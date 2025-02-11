@@ -46,8 +46,8 @@ Commands:
     - [ ] 更改java路径
 - 本地化
     - [X] 支持en (English)
-    - [ ] 支持zh_cn (简体中文)
+    - [X] 支持zh_cn (简体中文)
 
 ## 常见问题
 ### 为什么叫这个名字？
-QMCLI代表**Q**uick **M**ine**C**raft **L**auncher **CL****I**
+QMCLI代表**Q**uick **M**ine**C**raft **L**auncher **CLI**

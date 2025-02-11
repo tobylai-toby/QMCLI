@@ -48,8 +48,8 @@ many features are still working in progress
     - [ ] change java path
 - localization
     - [X] support en(English)
-    - [ ] support zh_cn(简体中文)
+    - [X] support zh_cn(简体中文)
 
 ## FAQ
 ### Why the name?
-QMCLI is for **Q**uick **M**ine**C**raft **L**auncher **CL****I**
+QMCLI is for **Q**uick **M**ine**C**raft **L**auncher **CLI**
