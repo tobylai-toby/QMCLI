@@ -363,11 +363,11 @@ usersCommand.command("add")
                     name: t("cmd_users_add_type_offline"),
                     description: t("cmd_users_add_type_offline_desc"),
                 },
-                {
-                    value: "mojang",
-                    name: t("cmd_users_add_type_mojang"),
-                    description: t("cmd_users_add_type_mojang_desc"),
-                },
+                // {
+                //     value: "mojang",
+                //     name: t("cmd_users_add_type_mojang"),
+                //     description: t("cmd_users_add_type_mojang_desc"),
+                // },
                 {
                     value: "microsoft",
                     name: t("cmd_users_add_type_microsoft"),

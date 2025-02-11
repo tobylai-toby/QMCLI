@@ -330,7 +330,7 @@ export async function launchGame(basepath: string, game: string) {
         "auth_uuid":user.uuid,
         "auth_access_token":user.auth_access_token,
         "user_properties": "{}",
-        "user_type": user.type!="mojang"?"msa":"mojang",
+        "user_type": "msa"
     };
     cmd.push(
         "-XX:+UnlockExperimentalVMOptions",

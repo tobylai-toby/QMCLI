@@ -36,7 +36,7 @@ Commands:
 - 用户
     - [X] 添加/移除用户
     - [X] 离线用户
-    - [ ] mojang用户
+    - [ ] mojang用户 (不再支持)
     - [ ] microsoft用户
 - 设置
     - [X] 更改下载镜像

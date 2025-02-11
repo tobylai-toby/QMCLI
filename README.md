@@ -38,7 +38,7 @@ many features are still working in progress
 - users
     - [X] add/remove users
     - [X] offline users
-    - [ ] mojang users
+    - [ ] mojang users (deprecated?)
     - [ ] microsoft users
 - settings
     - [X] change download mirror
