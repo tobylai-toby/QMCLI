@@ -1,4 +1,6 @@
 {
+    "lang_code":"en",
+    "lang_name":"English",
     "app_desc": "A Quick Minecraft CLI Launcher",
 
     "cmd_versions_desc": "manage minecraft versions",
