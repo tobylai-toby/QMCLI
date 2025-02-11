@@ -15,7 +15,12 @@ import {
     removeUser,
     User,
 } from "./users";
-import { t } from "./translations/translate";
+import { t, TransType } from "./translations/translate";
+
+// languages
+import transEn from "./translations/en.json";
+const languages:Record<string,TransType> = { "en": transEn };
+
 
 const program = new Command();
 program.name("qmcli").description(t("app_desc")).version(
@@ -324,6 +329,25 @@ pathsCommand.command("list")
             }
         }
     });
+
+// language
+settingsCommand.command("lang").description(t("cmd_settings_lang_desc"))
+    .action(async () => {
+        const lang = await select({
+            message: t("cmd_settings_lang_select_prompt", config.get("lang")),
+            default: config.get("lang"),
+            choices: Object.keys(languages).map((l)=>{
+                return {
+                    value: l,
+                    name: `${languages[l].lang_name} (${l})`,
+                    short: l,
+                }
+            })
+        });
+        config.set("lang", lang);
+        console.log(chalk.green(t("cmd_settings_lang_set_success", lang)))
+    });
+
 
 program.addCommand(settingsCommand);
 

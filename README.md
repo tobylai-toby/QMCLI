@@ -1,5 +1,6 @@
 # QMCLI
 English | [简体中文](README_zh_cn.md)
+
 A Quick Minecraft Launcher CLI (Work In Progress)
 
 ## Installation
