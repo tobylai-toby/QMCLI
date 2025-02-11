@@ -13,16 +13,16 @@ $ qmcli
 $ qmcli --help
 Usage: qmcli [options] [command]
 
-A Quick Minecraft CLI Launcher
+一个快速的 Minecraft 命令行启动器
 
 Options:
   -V, --version   output the version number
   -h, --help      display help for command
 
 Commands:
-  versions        manage minecraft versions
-  settings        manage settings
-  users           add/manage users
+  versions        管理 Minecraft 版本
+  settings        管理设置
+  users           添加/管理用户
   help [command]  display help for command
 ```
 ## 特性

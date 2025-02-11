@@ -1,4 +1,9 @@
 import transEn from "./en.json";
+import transZhCN from "./zh-CN.json";
+
+// languages
+export const languages:Record<string,TransType> = { "en": transEn,"zh-CN": transZhCN };
+
 export type TransType=typeof transEn
 export type TransKey=keyof TransType
 

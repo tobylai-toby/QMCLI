@@ -15,12 +15,10 @@ import {
     removeUser,
     User,
 } from "./users";
-import { t, TransType } from "./translations/translate";
-
-// languages
-import transEn from "./translations/en.json";
-const languages:Record<string,TransType> = { "en": transEn };
-
+import { t, TransType,installTrans,languages } from "./translations/translate";
+// load language
+const activedTrans: TransType = languages[config.get("lang")];
+installTrans(activedTrans);
 
 const program = new Command();
 program.name("qmcli").description(t("app_desc")).version(
