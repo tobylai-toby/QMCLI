@@ -20,7 +20,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           allow_override: true
-          files: |
+          files: >
               dist/build/qmcli-windows-x64.zip
               dist/build/qmcli-linux-x64.zip
               dist/build/qmcli-linux-arm64.zip
