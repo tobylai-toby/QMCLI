@@ -1,8 +1,10 @@
 # a workflow runs on release,setup bun,bun install,and then run bun bun-build.ts,then upload dist/build/* to release assets
 name: Release
 on:
-  release:
-    types: [published]
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   build:
