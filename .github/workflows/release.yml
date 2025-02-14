@@ -1,8 +1,7 @@
 # a workflow runs on release,setup bun,bun install,and then run bun bun-build.ts,then upload dist/build/* to release assets
 name: Release build exe
 on:
-  release:
-    types: [published,released,prereleased]
+  - release
 
 jobs:
   build:
