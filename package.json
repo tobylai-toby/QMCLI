@@ -1,6 +1,6 @@
 {
   "name": "@tobylai/qmcli",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A quick minecraft launcher command-line interface",
   "main": "dist/cli.js",
   "type": "module",

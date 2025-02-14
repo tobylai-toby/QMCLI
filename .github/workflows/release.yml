@@ -1,10 +1,10 @@
 # a workflow runs on release,setup bun,bun install,and then run bun bun-build.ts,then upload dist/build/* to release assets
-name: Release
+name: Release build exe
 on:
-  push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+  release:
+    types:
+      - edited
+      - created
 
 jobs:
   build:
@@ -16,9 +16,10 @@ jobs:
           bun-version: latest
       - run: bun install
       - run: bun bun-build.ts exe
-      - uses: d1ceward/release-upload-action@v4
+      - uses: cloudnode-pro/release-upload-asset@1.0.2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # See the ‘Inputs’ section below for details.
+          gh-token: ${{ github.token }}
           files: |
             dist/build/qmcli-windows-x64.zip
             dist/build/qmcli-linux-x64.zip
