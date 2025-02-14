@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx tsx cli.ts",
-    "build": "node esbuild.mjs",
+    "build": "bun bun-build.ts cjs",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
