@@ -16,13 +16,12 @@ jobs:
           bun-version: latest
       - run: bun install
       - run: bun bun-build.ts exe
-      - name: Update release
-        uses: ColinPitrat/update-release@v1.0.1
+      - uses: meeDamian/github-release@2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          message: Released ${{ github.ref }}
-          body: |
-            ${{ github.ref }}
-          files:
-            dist/build/qmcli-windows-x64.zip dist/build/qmcli-linux-x64.zip dist/build/qmcli-linux-arm64.zip dist/build/qmcli-darwin-x64.zip dist/build/qmcli-darwin-arm64.zip
+          files: |
+              dist/build/qmcli-windows-x64.zip
+              dist/build/qmcli-linux-x64.zip
+              dist/build/qmcli-linux-arm64.zip
+              dist/build/qmcli-darwin-x64.zip
+              dist/build/qmcli-darwin-arm64.zip
