@@ -24,7 +24,7 @@ function buildForPlatform(platform: string) {
             `bun-${platform}`,
             "qmcli.cjs",
             "--outfile",
-            `buildexe/${platform}/qmcli`,
+            `buildexe/qmcli-${platform}/qmcli`,
         ],
     });
 }
@@ -40,17 +40,17 @@ async function buildAllExe() {
     for (const platform of platforms) {
         buildForPlatform(platform);
         // look for file under dist/buildexe/${platform}/
-        let file=fs.readdirSync(`./dist/buildexe/${platform}`).filter((f)=>f.startsWith("qmcli"))[0];
+        let file=fs.readdirSync(`./dist/buildexe/qmcli-${platform}`).filter((f)=>f.startsWith("qmcli"))[0];
         if(!file){
-            console.error(`file not found in ./dist/buildexe/${platform}/`);
+            console.error(`file not found in ./dist/buildexe/qmcli-${platform}/`);
             process.exit(1);
         }
         // zip them
-        await zl.archiveFile(`./dist/buildexe/${platform}/${file}`,`./dist/build/qmcli-${platform}.zip`);
+        // await zl.archiveFile(`./dist/buildexe/qmcli-${platform}/${file}`,`./dist/build/qmcli-${platform}.zip`);
         console.log(`${platform} built`)
     }
     for(const platform of platforms){
-        console.log(`dist/build/qmcli-${platform}.zip`)
+        console.log(`dist/buildexe/qmcli-${platform}`)
     }
 }
 

@@ -21,8 +21,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           allow_override: true
           files: >
-              dist/build/qmcli-windows-x64.zip
-              dist/build/qmcli-linux-x64.zip
-              dist/build/qmcli-linux-arm64.zip
-              dist/build/qmcli-darwin-x64.zip
-              dist/build/qmcli-darwin-arm64.zip
+              dist/buildexe/qmcli-windows-x64
+              dist/buildexe/qmcli-linux-x64
+              dist/buildexe/qmcli-linux-arm64
+              dist/buildexe/qmcli-darwin-x64
+              dist/buildexe/qmcli-darwin-arm64
