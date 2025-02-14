@@ -1,7 +1,10 @@
 # a workflow runs on release,setup bun,bun install,and then run bun bun-build.ts,then upload dist/build/* to release assets
-name: Release build exe
+name: Release on tags push
 on:
-  - release
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   build:
@@ -13,13 +16,13 @@ jobs:
           bun-version: latest
       - run: bun install
       - run: bun bun-build.ts exe
-      - uses: cloudnode-pro/release-upload-asset@1.0.2
+      - name: Update release
+        uses: ColinPitrat/update-release@v1.0.1
         with:
-          # See the ‘Inputs’ section below for details.
-          gh-token: ${{ github.token }}
-          files: |
-            dist/build/qmcli-windows-x64.zip
-            dist/build/qmcli-linux-x64.zip
-            dist/build/qmcli-linux-arm64.zip
-            dist/build/qmcli-darwin-x64.zip
-            dist/build/qmcli-darwin-arm64.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          message: Released ${{ github.ref }}
+          body: |
+            ${{ github.ref }}
+          files:
+            dist/build/qmcli-windows-x64.zip dist/build/qmcli-linux-x64.zip dist/build/qmcli-linux-arm64.zip dist/build/qmcli-darwin-x64.zip dist/build/qmcli-darwin-arm64.zip
