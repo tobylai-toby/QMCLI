@@ -1,0 +1,25 @@
+# a workflow runs on release,setup bun,bun install,and then run bun bun-build.ts,then upload dist/build/* to release assets
+name: Release
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun bun-build.ts exe
+      - uses: d1ceward/release-upload-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            dist/build/qmcli-windows-x64.zip
+            dist/build/qmcli-linux-x64.zip
+            dist/build/qmcli-linux-arm64.zip
+            dist/build/qmcli-darwin-x64.zip
+            dist/build/qmcli-darwin-arm64.zip

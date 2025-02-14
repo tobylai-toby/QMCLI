@@ -57,6 +57,7 @@ export class DownloadQueue {
         });
 
         // 速度更新定时器（保留原有API结构）
+        // @ts-ignore
         this.speedUpdateInterval = setInterval(() => this.updateProgress(), 100);
     }
 
