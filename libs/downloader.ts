@@ -35,6 +35,7 @@ export class DownloadQueue {
     public extra:any;
     private downloadedSize=0;
     private startTime=0;
+    public defaultRetries=20;
     // 保持原有构造函数参数
     constructor(maxParallel: number,extra?:any) {
         this.extra=extra;
@@ -145,10 +146,10 @@ export class DownloadQueue {
             writer.end();
             this.completedTasks++;
         } catch (error) {
-            if ((task.retries || 20) > 0) {
+            if ((task.retries || this.defaultRetries) > 0) {
                 console.error(`♻️❌ ${task.filename}(retrying): ${(error as Error).message}`);
                 await new Promise(resolve => setTimeout(resolve, 3000));
-                this.queue.push({...task, retries: task.retries! - 1});
+                this.queue.push({...task, retries: (task.retries || this.defaultRetries) - 1});
             }else{
                 console.error(`❌⚙️ ${task.filename}(FAILED!): ${(error as Error).message}`);
                 throw error;

@@ -74,6 +74,8 @@ export async function fetchAsset(verInfo: any, path: string, gameName: string) {
                 console.log(
                     chalk.yellow(t("asset_hash_mismatch_redownload",name)),
                 );
+            }else{
+                continue;
             }
         }
         createPathIfNotExists(nodePath.dirname(file));
@@ -217,16 +219,27 @@ export async function launchGame(basepath: string, game: string) {
             short: `${p.name} (${t("user_type."+p.type)})`,
         })),
     });
-    // extract natives
-    // a much more easy way: check file names
-    console.log(chalk.blue(t("launch_extracting_natives")));
-    const os = getOs();
-    const suffix = getArchSuffix();
     const verJson = JSON.parse(
         fs.readFileSync(`${basepath}/versions/${game}/${game}.json`, {
             encoding: "utf-8",
         }),
     );
+    // fetch asset
+    console.log(chalk.blue(t("launch_fetching_asset")));
+    const {tasks,totalSize}=await fetchAsset(verJson, basepath, game);
+    if(tasks.length!=0){
+        let dl=new DownloadQueue(16,{totalSize});
+        for(const task of tasks){
+            dl.addTask(task);
+        }
+        await dl.wait();
+    }
+    console.log(chalk.blue(t("launch_fetched_asset")));
+    // extract natives
+    // a much more easy way: check file names
+    console.log(chalk.blue(t("launch_extracting_natives")));
+    const os = getOs();
+    const suffix = getArchSuffix();
     const extractLibs: string[] = [];
     const libraries: string[] = [];
     const extractDir = `${basepath}/versions/${game}/natives-${os}${suffix}`;

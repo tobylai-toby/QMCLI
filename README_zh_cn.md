@@ -52,8 +52,9 @@ Commands:
     - [X] 支持zh_cn (简体中文)
 - 模组
     - [ ] forge
+    - [ ] neoforge
     - [ ] fabric
-    - 也许还有
+    - [ ] quilt
 
 ## 常见问题
 ### 为什么叫这个名字？
