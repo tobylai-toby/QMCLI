@@ -16,6 +16,7 @@ import McLog4j2Xml from "./mc/log4j2.xml";
 import { select } from "@inquirer/prompts";
 import { getUsers } from "./users";
 import { t } from "./translations/translate";
+import packageJson from "./package.json"
 
 export interface MCVersion {
     id: string;
@@ -317,7 +318,7 @@ export async function launchGame(basepath: string, game: string) {
     // parse arguments above
     const argparams = {
         "version_name": verJson.id,
-        "version_type": "QMCLI 0.0.1",
+        "version_type": "QMCLI v"+packageJson.version,
         "game_directory": basepath,
         "assets_root": `${basepath}/assets`,
         "assets_index_name": verJson.assets,
