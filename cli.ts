@@ -1,11 +1,11 @@
 import { Command } from "commander";
 import { confirm, input, rawlist, search, select } from "@inquirer/prompts";
-import { config } from "./config";
-import * as versionsMod from "./versions";
+import { config } from "./libs/config";
+import * as versionsMod from "./libs/versions";
 import packageJson from "./package.json";
 import chalk from "chalk";
 import * as fs from "fs";
-import { expandTilde, isValidFileName } from "./utils";
+import { expandTilde, isValidFileName } from "./libs/utils";
 import path from "path";
 import {
     addUser,
@@ -14,7 +14,7 @@ import {
     getUsers,
     removeUser,
     User,
-} from "./users";
+} from "./libs/users";
 import { t, TransType,installTrans,languages } from "./translations/translate";
 // load language
 const activedTrans: TransType = languages[config.get("lang")];

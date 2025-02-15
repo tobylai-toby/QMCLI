@@ -47,6 +47,10 @@ Commands:
 - 本地化
     - [X] 支持en (English)
     - [X] 支持zh_cn (简体中文)
+- 模组
+    - [ ] forge
+    - [ ] fabric
+    - 也许还有
 
 ## 常见问题
 ### 为什么叫这个名字？

@@ -1,4 +1,4 @@
-import packageJson from './package.json';
+import packageJson from '../package.json';
 import Configstore from 'configstore';
 export const config = new Configstore(packageJson.name, {
     users: [],

@@ -49,6 +49,10 @@ many features are still working in progress
 - localization
     - [X] support en(English)
     - [X] support zh_cn(简体中文)
+- mods
+    - [ ] forge
+    - [ ] fabric
+    - maybe more
 
 ## FAQ
 ### Why the name?

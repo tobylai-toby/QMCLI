@@ -4,7 +4,7 @@ import { DownloadQueue, DownloadTask } from "./downloader";
 import { m } from "./mirrors";
 import * as fs from "node:fs";
 import * as nodePath from "node:path";
-import McLauncherProfiles from "./mc/launcher_profiles.json";
+import McLauncherProfiles from "../mc/launcher_profiles.json";
 import { checkRules, getArchSuffix, getOs } from "./utils";
 // import zl from "zip-lib";
 import AdmZip from "adm-zip";
@@ -12,11 +12,11 @@ import jsSHA from "jssha";
 import { spawn, spawnSync } from "node:child_process";
 import arch from "arch";
 import { platform, release, version } from "node:os";
-import McLog4j2Xml from "./mc/log4j2.xml";
+import McLog4j2Xml from "../mc/log4j2.xml";
 import { select } from "@inquirer/prompts";
 import { getUsers } from "./users";
-import { t } from "./translations/translate";
-import packageJson from "./package.json"
+import { t } from "../translations/translate";
+import packageJson from "../package.json"
 
 export interface MCVersion {
     id: string;
