@@ -6,7 +6,8 @@ import * as fs from "node:fs";
 import * as nodePath from "node:path";
 import McLauncherProfiles from "./mc/launcher_profiles.json";
 import { checkRules, getArchSuffix, getOs } from "./utils";
-import zl from "zip-lib";
+// import zl from "zip-lib";
+import AdmZip from "adm-zip";
 import jsSHA from "jssha";
 import { spawn, spawnSync } from "node:child_process";
 import arch from "arch";
@@ -279,7 +280,9 @@ export async function launchGame(basepath: string, game: string) {
     fs.mkdirSync(`${extractDir}/tmp`, { recursive: true });
     for (const lib of extractLibs) {
         // console.log(chalk.blue(`extracting ${lib}...`));
-        await zl.extract(`${basepath}/libraries/${lib}`, `${extractDir}/tmp`);
+        // await zl.extract(`${basepath}/libraries/${lib}`, `${extractDir}/tmp`);
+        const zip=new AdmZip(`${basepath}/libraries/${lib}`);
+        zip.extractAllTo(`${extractDir}/tmp`, true);
     }
     // fs recursively get all the files in /tmp folder
     // and move them to the natives folder
