@@ -33,8 +33,11 @@ many features are still working in progress
 - versions
     - [X] download minecraft versions
     - [X] launch minecraft
-    - [ ] edit minecraft launch settings
-        - [ ] java path
+    - [X] edit minecraft (version-specific) launch settings
+        - [X] ram
+        - [X] version isolation
+        - [X] window size
+        - [X] set java path
 - users
     - [X] add/remove users
     - [X] offline users
@@ -45,7 +48,7 @@ many features are still working in progress
         - [X] official
         - [X] bmclapi
     - [X] manage minecraft installation paths
-    - [ ] change java path
+    - [X] change default java path
 - localization
     - [X] support en(English)
     - [X] support zh_cn(简体中文)

@@ -39,6 +39,8 @@
     "cmd_versions_action_delete_start": "removing",
     "cmd_versions_action_delete_finish": "removed",
     "cmd_versions_action_delete_cancel": "canceled",
+    "cmd_versions_action_edit_prompt":"modify the launcher-specific game config\nSave: close the editor to save\nReset: remove the entries you want to reset\n",
+    "cmd_versions_action_edit_saved":"saved",
 
     "cmd_settings_desc": "manage settings",
     "cmd_settings_mirror_desc": "set mirror",
@@ -78,6 +80,11 @@
     "cmd_settings_lang_desc":"modify language",
     "cmd_settings_lang_select_prompt": "select a language [current:$1]",
     "cmd_settings_lang_set_success": "set language to $1",
+    
+    "cmd_settings_java_desc": "modify default java executable (default to: java)",
+    "cmd_settings_java_prompt":"enter the default java executable path(or something in $PATH) [current:$1]",
+    "cmd_settings_java_set_success":"set default java to $1",
+    "error_java_required": "java is required",
 
     "cmd_users_desc": "add/manage users",
     "cmd_users_add_desc": "add a user",

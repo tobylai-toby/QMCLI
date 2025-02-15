@@ -17,6 +17,7 @@ import { select } from "@inquirer/prompts";
 import { getUsers } from "./users";
 import { t } from "../translations/translate";
 import packageJson from "../package.json"
+import { loadConfig } from "./versionsConfig";
 
 export interface MCVersion {
     id: string;
@@ -200,6 +201,7 @@ function cpSep(){
 }
 
 export async function launchGame(basepath: string, game: string) {
+    const gconfig=loadConfig(basepath,game);
     // login
     const users=getUsers();
     if(users.length===0){
@@ -319,15 +321,15 @@ export async function launchGame(basepath: string, game: string) {
     const argparams = {
         "version_name": verJson.id,
         "version_type": "QMCLI v"+packageJson.version,
-        "game_directory": basepath,
+        "game_directory": gconfig.isolated?`${basepath}/versions/${game}`:basepath,
         "assets_root": `${basepath}/assets`,
         "assets_index_name": verJson.assets,
         "natives_directory": extractDir,
         "launcher_name": "QMCLI",
         "launcher_version": "0.0.1",
         "classpath": `${libraries.join(cpSep())}`,
-        "resolution_width": "854",
-        "resolution_height": "480",
+        "resolution_width": gconfig.size!.width,
+        "resolution_height": gconfig.size!.height,
 
         // user stuff
         "auth_player_name":user.name,
@@ -337,6 +339,10 @@ export async function launchGame(basepath: string, game: string) {
         "user_type": "msa"
     };
     cmd.push(
+        // ram min
+        "-Xmn"+gconfig.ram!.min,
+        // ram max
+        "-Xmx"+gconfig.ram!.max,
         "-XX:+UnlockExperimentalVMOptions",
         "-XX:+UseG1GC",
         "-XX:G1NewSizePercent=20",
@@ -482,14 +488,15 @@ export async function launchGame(basepath: string, game: string) {
     }
     if(user.type==="offline"){}
 
-    let command = "java " + cmd.map((p) => {
+    let command = cmd.map((p) => {
         if (p.includes(" ")) {
             return `"${p}"`;
         } else return p;
     }).join(" ");
     // console.log(command)
     console.log(chalk.green(t("launch_starting")));
-    spawn("java", cmd, {
+    const javaexe=gconfig.java||config.get("java");
+    spawn(javaexe, cmd, {
         stdio: "inherit",
         shell: false,
         cwd: basepath,

@@ -31,8 +31,11 @@ Commands:
 - 版本
     - [X] 下载minecraft版本
     - [X] 启动minecraft
-    - [ ] 编辑minecraft启动设置
-        - [ ] java路径
+    - [X] 编辑版本特定的minecraft启动设置
+        - [X] 内存
+        - [X] 版本隔离
+        - [X] 窗口大小
+        - [X] 设置java路径
 - 用户
     - [X] 添加/移除用户
     - [X] 离线用户
@@ -43,7 +46,7 @@ Commands:
         - [X] 官方
         - [X] bmclapi
     - [X] 管理minecraft安装路径
-    - [ ] 更改java路径
+    - [X] 更改默认java路径
 - 本地化
     - [X] 支持en (English)
     - [X] 支持zh_cn (简体中文)

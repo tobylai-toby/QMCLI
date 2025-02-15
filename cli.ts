@@ -1,5 +1,6 @@
 import { Command } from "commander";
-import { confirm, input, rawlist, search, select } from "@inquirer/prompts";
+import { editor,confirm, input, rawlist, search, select } from "@inquirer/prompts";
+import yaml from "js-yaml"
 import { config } from "./libs/config";
 import * as versionsMod from "./libs/versions";
 import packageJson from "./package.json";
@@ -16,6 +17,8 @@ import {
     User,
 } from "./libs/users";
 import { t, TransType,installTrans,languages } from "./translations/translate";
+import { LauncherGameConfig, loadConfig, saveConfig } from "./libs/versionsConfig";
+
 // load language
 const activedTrans: TransType = languages[config.get("lang")];
 installTrans(activedTrans);
@@ -183,7 +186,16 @@ versionsCommand.command("list")
             await versionsMod.launchGame(expandTilde(pathSel), game);
             // console.log(chalk.green(t("operation_completed")));
         } else if (action === "edit") {
-            console.log(chalk.yellow(t("cmd_versions_action_edit_todo")));
+            // console.log(chalk.yellow(t("cmd_versions_action_edit_todo")));
+            const config=loadConfig(expandTilde(pathSel),game);
+            const yamlConfig=yaml.dump(config);
+            const res=await editor({
+                message: t("cmd_versions_action_edit_prompt"),
+                default: yamlConfig,
+                postfix: ".yml",
+            });
+            saveConfig(expandTilde(pathSel),game,yaml.load(res) as LauncherGameConfig);
+            console.log(chalk.green(t("cmd_versions_action_edit_saved")));
         } else if (action === "delete") {
             const confirm_ = await confirm({
                 message: t("cmd_versions_action_delete_confirm", game),
@@ -346,6 +358,21 @@ settingsCommand.command("lang").description(t("cmd_settings_lang_desc"))
         console.log(chalk.green(t("cmd_settings_lang_set_success", lang)))
     });
 
+settingsCommand.command("java").description(t("cmd_settings_java_desc"))
+    .action(async()=>{
+        const javaexe=await input({
+            message: t("cmd_settings_java_prompt",config.get("java")),
+            default: config.get("java"),
+            validate(value){
+                if(!value){
+                    return t("error_java_required");
+                }
+                return true;
+            }
+        });
+        config.set("java",javaexe);
+        console.log(chalk.green(t("cmd_settings_java_set_success", javaexe)))
+    })
 
 program.addCommand(settingsCommand);
 
