@@ -5,6 +5,7 @@ const tag=Bun.argv[3];
 async function buildCjs() {
     await Bun.build({
         entrypoints: ["cli.ts"],
+        format: "cjs",
         target: "node",
         minify: true,
         banner: "#!/usr/bin/env node",
