@@ -39,7 +39,7 @@
     "cmd_versions_action_delete_start": "removing",
     "cmd_versions_action_delete_finish": "removed",
     "cmd_versions_action_delete_cancel": "canceled",
-    "cmd_versions_action_edit_prompt":"modify the launcher-specific game config\nSave: close the editor to save\nReset: remove the entries you want to reset\n",
+    "cmd_versions_action_edit_prompt":"modify the game config\nSave: close the editor to save\nReset: remove the entries you want to reset\n",
     "cmd_versions_action_edit_saved":"saved",
 
     "cmd_settings_desc": "manage settings",
@@ -138,6 +138,8 @@
     "launch_precheck_no_users":"no users here, please add a user first",
     "launch_user_select_prompt":"select a user",
     "launch_user_select_user_desc":"uuid: $1 type: $2",
+    "launch_fetching_asset":"fetching asset if needed...",
+    "launch_fetched_asset":"asset fetched",
     "launch_extracting_natives":"extracting natives...",
     "launch_moving_files":"moving files...",
     "launch_extracting_natives_done":"natives extracting done!",
