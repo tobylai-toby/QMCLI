@@ -13,7 +13,7 @@ export function installTrans(trans:Record<string,string>){
 }
 
 export function t(key:TransKey|string,...args:any[]){
-    let val=activedTrans[key]||key;
+    let val=activedTrans[key]||transEn[key as TransKey]||key;
     // replace $1,$2,$3 into args[0] args[1] args[3] and so on
     for(let i=0;i<args.length;i++){
         val=val.replace(`$${i+1}`,args[i]);
