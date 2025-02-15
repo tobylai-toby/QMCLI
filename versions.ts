@@ -207,7 +207,7 @@ export async function launchGame(basepath: string, game: string) {
         return;
     }
     const user=await select({
-        message: t("launcher_user_select_desc"),
+        message: t("launch_user_select_prompt"),
         choices: users.map((p)=>({
             value: p,
             name: `${p.name} (${t("user_type."+p.type)})`,

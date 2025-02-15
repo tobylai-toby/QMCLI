@@ -179,7 +179,7 @@ versionsCommand.command("list")
             ],
         });
         if (action === "launch") {
-            console.log(chalk.green(t("operation_launching")));
+            console.log(chalk.green(t("operation_starting")));
             await versionsMod.launchGame(expandTilde(pathSel), game);
             // console.log(chalk.green(t("operation_completed")));
         } else if (action === "edit") {
