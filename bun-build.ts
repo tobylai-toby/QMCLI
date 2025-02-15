@@ -1,6 +1,7 @@
 import zl from "zip-lib";
 import * as fs from "node:fs";
-const typebuild = Bun.argv[Bun.argv.length - 1];
+const typebuild = Bun.argv[2];
+const tag=Bun.argv[3];
 async function buildCjs() {
     await Bun.build({
         entrypoints: ["cli.ts"],
@@ -46,11 +47,8 @@ async function buildAllExe() {
             process.exit(1);
         }
         // zip them
-        // await zl.archiveFile(`./dist/buildexe/qmcli-${platform}/${file}`,`./dist/build/qmcli-${platform}.zip`);
+        await zl.archiveFile(`./dist/buildexe/qmcli-${platform}/${file}`,`./dist/build/qmcli-${platform}${tag?`-${tag}`:""}.zip`);
         console.log(`${platform} built`)
-    }
-    for(const platform of platforms){
-        console.log(`dist/buildexe/qmcli-${platform}`)
     }
 }
 
