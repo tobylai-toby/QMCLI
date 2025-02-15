@@ -39,7 +39,7 @@
     "cmd_versions_action_delete_start": "removing",
     "cmd_versions_action_delete_finish": "removed",
     "cmd_versions_action_delete_cancel": "canceled",
-    "cmd_versions_action_edit_prompt":"modify the launcher-specific game config\nSave: close the editor to save\nReset: remove the entries you want to reset\n",
+    "cmd_versions_action_edit_prompt":"modify the game config\nSave: close the editor to save\nReset: remove the entries you want to reset\n",
     "cmd_versions_action_edit_saved":"saved",
 
     "cmd_settings_desc": "manage settings",
