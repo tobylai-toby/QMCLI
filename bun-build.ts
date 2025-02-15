@@ -47,7 +47,7 @@ async function buildAllExe() {
             process.exit(1);
         }
         // zip them
-        await zl.archiveFile(`./dist/buildexe/qmcli-${platform}/${file}`,`./dist/build/qmcli-${platform}${tag?`-${tag}`:""}.zip`);
+        await zl.archiveFile(`./dist/buildexe/qmcli-${platform}/${file}`,`./dist/build/qmcli-${platform}${tag?`-${tag.split("/").pop()}`:""}.zip`);
         console.log(`${platform} built`)
     }
 }
