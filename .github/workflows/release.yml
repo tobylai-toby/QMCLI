@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
       - uses: oven-sh/setup-bun@v2
@@ -16,18 +18,9 @@ jobs:
           bun-version: latest
       - run: bun install
       - run: bun bun-build.ts exe ${{ github.ref }}
-      # - uses: meeDamian/github-release@2.0
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     allow_override: true
-      #     files: >
-      #         qmcli-windows-x64:dist/buildexe/qmcli-windows-x64/qmcli.exe
-      #         qmcli-linux-x64:dist/buildexe/qmcli-linux-x64/qmcli
-      #         qmcli-linux-arm64:dist/buildexe/qmcli-linux-arm64/qmcli
-      #         qmcli-darwin-x64:dist/buildexe/qmcli-darwin-x64/qmcli
-      #         qmcli-darwin-arm64:dist/buildexe/qmcli-darwin-arm64/qmcli
       - name: Create Release
         uses: ncipollo/release-action@v1.15.0
         with:
           artifacts: "dist/build/*.zip"
           allowUpdates: true
+          omitBody: true
