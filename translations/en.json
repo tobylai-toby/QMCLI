@@ -152,5 +152,6 @@
 
     "auto_install_prompt_already_installed_mod_loader":"already installed $1 mod loader",
     "auto_install_prompt_select_mod_loader":"select a mod loader to install",
+    "auto_install_prompt_select_loader_version":"select a version",
     "auto_install_prompt_no_loaders_found":"no loader version found, this minecraft version may not be supported."
 }

@@ -60,7 +60,7 @@ many features are still working in progress
     - [ ] forge
     - [ ] neoforge
     - [X] fabric
-    - [ ] quilt
+    - [X] quilt
     - maybe more
 
 ## FAQ

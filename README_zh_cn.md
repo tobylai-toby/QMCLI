@@ -58,7 +58,7 @@ Commands:
     - [ ] forge
     - [ ] neoforge
     - [X] fabric
-    - [ ] quilt
+    - [X] quilt
 
 ## 常见问题
 ### 为什么叫这个名字？

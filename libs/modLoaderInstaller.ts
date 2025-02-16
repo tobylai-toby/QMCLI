@@ -154,14 +154,18 @@ fs.writeFileSync("C:\\Users\\Toby\\.minecraft\\versions\\1.17.1\\1.17.1-merged.j
 // \libraries\net\minecraft\client\1.20-20230608.053357\client-1.20-20230608.053357-mappings.txt
 */
 class FabricInstaller extends BaseInstaller {
+    static fabricapi="https://meta.fabricmc.net/v2";
+    static headers={
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+    }
     static async getInstallersFromMcVersion(
         mcVersion: string,
     ): Promise<InstallerEntry[] | null> {
         const apiSupportedMcVersions = m(
-            "https://meta.fabricmc.net/v2/versions/game",
+            this.fabricapi+"/versions/game",
         );
         const supportedMcVersions =
-            (await (await fetch(apiSupportedMcVersions)).json() as {
+            (await (await fetch(apiSupportedMcVersions,{headers:this.headers})).json() as {
                 version: string;
                 stable: boolean;
             }[]).map((v) => v.version);
@@ -169,10 +173,10 @@ class FabricInstaller extends BaseInstaller {
             return null;
         }
         const apiLoaderVersions = m(
-            `https://meta.fabricmc.net/v2/versions/loader/${mcVersion}`,
+            `${this.fabricapi}/versions/loader/${mcVersion}`,
         );
         const loaderVersions =
-            (await (await fetch(apiLoaderVersions)).json()) as {
+            (await (await fetch(apiLoaderVersions,{headers:this.headers})).json()) as {
                 loader: { version: string; stable: boolean };
             }[];
         return loaderVersions.map((v) => ({
@@ -193,9 +197,9 @@ class FabricInstaller extends BaseInstaller {
         game: string,
     ): Promise<void> {
         const apiProfile = m(
-            `https://meta.fabricmc.net/v2/versions/loader/${entry.mcversion}/${entry.version}/profile/json`,
+            `${this.fabricapi}/versions/loader/${entry.mcversion}/${entry.version}/profile/json`,
         );
-        const profileJson = await (await fetch(apiProfile)).json();
+        const profileJson = await (await fetch(apiProfile,{headers:this.headers})).json();
         const originalVerJson = JSON.parse(
             fs.readFileSync(`${basepath}/versions/${game}/${game}.json`, {
                 encoding: "utf-8",
@@ -252,6 +256,9 @@ class FabricInstaller extends BaseInstaller {
         }
     }
 }
+class QuiltInstaller extends FabricInstaller{
+    static fabricapi="https://meta.quiltmc.org/v3";
+}
 type LoaderTypes="fabric"|"forge"|"quilt"|"neoforged";
 // (async () => {
 //     const ver =
@@ -262,7 +269,7 @@ type LoaderTypes="fabric"|"forge"|"quilt"|"neoforged";
 const installers:Record<LoaderTypes,typeof BaseInstaller>={
     fabric:FabricInstaller,
     forge:BaseInstaller,// TODO
-    quilt:BaseInstaller,// TODO
+    quilt:QuiltInstaller,// TODO
     neoforged:BaseInstaller,// TODO
 }
 
@@ -295,9 +302,9 @@ export async function autoInstallPrompt(basepath:string,game:string,mcversion:st
         message: t("auto_install_prompt_select_mod_loader"),
         choices: [
             {name:"Fabric",value:"fabric"},
+            {name:"Quilt",value:"quilt"},
             new Separator(),
             {name:"Forge ❌todo",value:"forge"},
-            {name:"Quilt ❌todo",value:"quilt"},
             {name:"NeoForge ❌todo",value:"neoforged"},
         ]
     });
