@@ -10,6 +10,7 @@
     "cmd_versions_list_version_desc": "$1 type:$2 release:$3 update:$4",
     "cmd_versions_add_select_version_prompt": "select a version",
     "cmd_versions_enter_game_name_prompt": "enter game name:",
+    "cmd_versions_add_tips_autoinstall":"tips: you can auto install a mod loader by qmcli versions list > auto install later",
 
     "select_mc_path_prompt": "select a minecraft path",
     "select_mc_path_desc": "select the path which contains minecraft files and data",

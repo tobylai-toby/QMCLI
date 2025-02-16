@@ -115,6 +115,7 @@ versionsCommand.command("add")
         console.log(chalk.green(t("summary_game_name", gameName)));
         console.log(chalk.green(t("summary_version", ver.id)));
         console.log(chalk.green(t("summary_minecraft_path", pathSel)));
+        console.log(chalk.green(t("cmd_versions_add_tips_autoinstall")))
         const yes = await confirm({
             message: t("confirm_continue"),
         });
