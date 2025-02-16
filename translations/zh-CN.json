@@ -137,5 +137,6 @@
     "launch_starting": "正在启动 Minecraft...",
     "auto_install_prompt_already_installed_mod_loader": "已安装 $1 模组加载器",
     "auto_install_prompt_select_mod_loader": "选择要安装的模组加载器",
+    "auto_install_prompt_select_loader_version": "select a version",
     "auto_install_prompt_no_loaders_found": "未找到加载器版本，此Minecraft版本可能不受支持。"
 }
