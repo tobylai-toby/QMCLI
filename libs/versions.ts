@@ -9,14 +9,14 @@ import { checkRules, getArchSuffix, getOs } from "./utils";
 // import zl from "zip-lib";
 import AdmZip from "adm-zip";
 import jsSHA from "jssha";
-import { spawn, spawnSync } from "node:child_process";
+import { execSync, spawn, spawnSync } from "node:child_process";
 import arch from "arch";
 import { platform, release, version } from "node:os";
 import McLog4j2Xml from "../mc/log4j2.xml";
 import { select } from "@inquirer/prompts";
 import { getUsers } from "./users";
 import { t } from "../translations/translate";
-import packageJson from "../package.json"
+import packageJson from "../package.json";
 import { loadConfig } from "./versionsConfig";
 
 export interface MCVersion {
@@ -72,9 +72,9 @@ export async function fetchAsset(verInfo: any, path: string, gameName: string) {
                 .getHash("HEX");
             if (sha1 !== assetIndexContent.objects[name].hash) {
                 console.log(
-                    chalk.yellow(t("asset_hash_mismatch_redownload",name)),
+                    chalk.yellow(t("asset_hash_mismatch_redownload", name)),
                 );
-            }else{
+            } else {
                 continue;
             }
         }
@@ -92,6 +92,98 @@ export async function fetchAsset(verInfo: any, path: string, gameName: string) {
     };
 }
 
+export async function fetchLibraries(
+    verInfo: any,
+    basepath: string,
+    gameName: string,
+) {
+    const tasks = [];
+    let totalSize = 0;
+    // libraries
+    createPathIfNotExists(`${basepath}/libraries`);
+    for (const lib of verInfo.libraries) {
+        const { downloads: { artifact } } = lib;
+        if (artifact) {
+            const { path, url, size, sha1 } = artifact;
+            const filename = `${basepath}/libraries/${path}`;
+            let push = true;
+            if(!sha1&&fs.existsSync(filename)){
+                push=false;
+            }
+            if (fs.existsSync(filename)) {
+                // check sha1 of existing file
+                const content: Uint8Array = new Uint8Array(
+                    fs.readFileSync(filename),
+                );
+                const newsha1 = new jsSHA("SHA-1", "UINT8ARRAY").update(content)
+                    .getHash("HEX");
+                if (newsha1 == sha1) {
+                    push = false;
+                }else{
+                    console.log(
+                        chalk.yellow(t("asset_hash_mismatch_redownload", path)),
+                    );
+                }
+            }
+            if (push) {
+                tasks.push({
+                    url: m(url),
+                    filename: filename,
+                    extra: { size },
+                });
+                totalSize += size;
+                createPathIfNotExists(
+                    nodePath.dirname(filename),
+                );
+            }
+        }
+        // if have classifiers
+        if (lib.downloads.classifiers) {
+            for (
+                const [key, val] of Object.entries<any>(
+                    lib.downloads.classifiers,
+                )
+            ) {
+                const { path, url, size, sha1 } = val;
+                const filename = `${basepath}/libraries/${path}`;
+                let push = true;
+                if (fs.existsSync(filename)) {
+                    // check sha1 of existing file
+                    const content: Uint8Array = new Uint8Array(
+                        fs.readFileSync(filename),
+                    );
+                    const newsha1 = new jsSHA("SHA-1", "UINT8ARRAY").update(
+                        content,
+                    )
+                        .getHash("HEX");
+                    if (newsha1 == sha1) {
+                        push = false;
+                    }else{
+                        console.log(
+                            chalk.yellow(t("asset_hash_mismatch_redownload", path)),
+                        );
+                    }
+                }
+                if (push) {
+                    tasks.push({
+                        url: m(url),
+                        filename: filename,
+                        extra: { size },
+                    });
+                    totalSize += size;
+                    createPathIfNotExists(
+                        nodePath.dirname(filename),
+                    );
+                }
+            }
+        }
+    }
+    return {
+        tasks,
+        totalSize,
+    };
+}
+
 export async function downloadVersion(
     verUrl: string,
     basepath: string,
@@ -100,6 +192,7 @@ export async function downloadVersion(
     const versionPath = `${basepath}/versions/${gameName}`;
     createPathIfNotExists(versionPath);
     const verInfo = await (await fetch(verUrl)).json();
+    verInfo.qmcli_ver_id=verInfo.id;
     fs.writeFileSync(
         `${versionPath}/${gameName}.json`,
         JSON.stringify(verInfo),
@@ -109,6 +202,10 @@ export async function downloadVersion(
     let totalSize = assets.totalSize;
     // assetsIndex json
     tasks.push(...assets.tasks);
+    const libraries = await fetchLibraries(verInfo, basepath, gameName);
+    totalSize += libraries.totalSize;
+    tasks.push(...libraries.tasks);
+
     // client.jar
     const { downloads: { client } } = verInfo;
     tasks.push({
@@ -117,42 +214,6 @@ export async function downloadVersion(
         extra: { size: client.size },
     });
     totalSize += client.size;
-    // libraries
-    createPathIfNotExists(`${basepath}/libraries`);
-    for (const lib of verInfo.libraries) {
-        const { downloads: { artifact } } = lib;
-        if (artifact) {
-            const { path, url, size } = artifact;
-            tasks.push({
-                url: m(url),
-                filename: `${basepath}/libraries/${path}`,
-                extra: { size },
-            });
-            totalSize += size;
-            createPathIfNotExists(
-                nodePath.dirname(`${basepath}/libraries/${path}`),
-            );
-        }
-        // if have classifiers
-        if (lib.downloads.classifiers) {
-            for (
-                const [key, val] of Object.entries<any>(
-                    lib.downloads.classifiers,
-                )
-            ) {
-                const { path, url, size } = val;
-                createPathIfNotExists(
-                    nodePath.dirname(`${basepath}/libraries/${path}`),
-                );
-                tasks.push({
-                    url: m(url),
-                    filename: `${basepath}/libraries/${path}`,
-                    extra: { size },
-                });
-                totalSize += size;
-            }
-        }
-    }
     // logging
     // will use custom log4j2.xml
     // if (verInfo.logging?.client?.file?.id) {
@@ -197,26 +258,30 @@ export async function listGames(basepath: string) {
     return games;
 }
 
-function cpSep(){
-    if(getOs()=="windows")return ";";
+function cpSep() {
+    if (getOs() == "windows") return ";";
     return ":";
 }
 
 export async function launchGame(basepath: string, game: string) {
-    const gconfig=loadConfig(basepath,game);
+    const gconfig = loadConfig(basepath, game);
     // login
-    const users=getUsers();
-    if(users.length===0){
+    const users = getUsers();
+    if (users.length === 0) {
         console.log(chalk.red(t("launch_precheck_no_users")));
         return;
     }
-    const user=await select({
+    const user = await select({
         message: t("launch_user_select_prompt"),
-        choices: users.map((p)=>({
+        choices: users.map((p) => ({
             value: p,
-            name: `${p.name} (${t("user_type."+p.type)})`,
-            description: t("launch_user_select_user_desc",p.uuid,t("user_type."+p.type)),
-            short: `${p.name} (${t("user_type."+p.type)})`,
+            name: `${p.name} (${t("user_type." + p.type)})`,
+            description: t(
+                "launch_user_select_user_desc",
+                p.uuid,
+                t("user_type." + p.type),
+            ),
+            short: `${p.name} (${t("user_type." + p.type)})`,
         })),
     });
     const verJson = JSON.parse(
@@ -226,15 +291,32 @@ export async function launchGame(basepath: string, game: string) {
     );
     // fetch asset
     console.log(chalk.blue(t("launch_fetching_asset")));
-    const {tasks,totalSize}=await fetchAsset(verJson, basepath, game);
-    if(tasks.length!=0){
-        let dl=new DownloadQueue(16,{totalSize});
-        for(const task of tasks){
+    const { tasks, totalSize } = await fetchAsset(verJson, basepath, game);
+    if (tasks.length != 0) {
+        let dl = new DownloadQueue(16, { totalSize });
+        for (const task of tasks) {
             dl.addTask(task);
         }
         await dl.wait();
     }
     console.log(chalk.blue(t("launch_fetched_asset")));
+    // fetch libraries
+    console.log(chalk.blue(t("launch_fetching_libraries")));
+    {
+        const { tasks, totalSize } = await fetchLibraries(
+            verJson,
+            basepath,
+            game,
+        );
+        if (tasks.length != 0) {
+            let dl = new DownloadQueue(16, { totalSize });
+            for (const task of tasks) {
+                dl.addTask(task);
+            }
+            await dl.wait();
+        }
+    }
+    console.log(chalk.blue(t("launch_fetched_libraries")));
     // extract natives
     // a much more easy way: check file names
     console.log(chalk.blue(t("launch_extracting_natives")));
@@ -297,7 +379,7 @@ export async function launchGame(basepath: string, game: string) {
     for (const lib of extractLibs) {
         // console.log(chalk.blue(`extracting ${lib}...`));
         // await zl.extract(`${basepath}/libraries/${lib}`, `${extractDir}/tmp`);
-        const zip=new AdmZip(`${basepath}/libraries/${lib}`);
+        const zip = new AdmZip(`${basepath}/libraries/${lib}`);
         zip.extractAllTo(`${extractDir}/tmp`, true);
     }
     // fs recursively get all the files in /tmp folder
@@ -333,8 +415,12 @@ export async function launchGame(basepath: string, game: string) {
     // parse arguments above
     const argparams = {
         "version_name": verJson.id,
-        "version_type": "QMCLI v"+packageJson.version,
-        "game_directory": gconfig.isolated?`${basepath}/versions/${game}`:basepath,
+        "version_type": "QMCLI v" + packageJson.version,
+        "game_directory": gconfig.isolated
+            ? `${basepath}/versions/${game}`
+            : basepath,
+        "library_directory": `${basepath}/libraries`,
+        "classpath_separator": cpSep(),
         "assets_root": `${basepath}/assets`,
         "assets_index_name": verJson.assets,
         "natives_directory": extractDir,
@@ -345,17 +431,17 @@ export async function launchGame(basepath: string, game: string) {
         "resolution_height": gconfig.size!.height,
 
         // user stuff
-        "auth_player_name":user.name,
-        "auth_uuid":user.uuid,
-        "auth_access_token":user.auth_access_token,
+        "auth_player_name": user.name,
+        "auth_uuid": user.uuid,
+        "auth_access_token": user.auth_access_token,
         "user_properties": "{}",
-        "user_type": "msa"
+        "user_type": "msa",
     };
     cmd.push(
         // ram min
-        "-Xmn"+gconfig.ram!.min,
+        "-Xmn" + gconfig.ram!.min,
         // ram max
-        "-Xmx"+gconfig.ram!.max,
+        "-Xmx" + gconfig.ram!.max,
         "-XX:+UnlockExperimentalVMOptions",
         "-XX:+UseG1GC",
         "-XX:G1NewSizePercent=20",
@@ -374,7 +460,7 @@ export async function launchGame(basepath: string, game: string) {
         { encoding: "utf-8" },
     );
     cmd.push(
-        verJson.logging.client.argument.replace(
+        verJson.logging.client.argument.replaceAll(
             "${path}",
             `${basepath}/versions/${game}/log4j2-qmcli.xml`,
         ),
@@ -385,7 +471,7 @@ export async function launchGame(basepath: string, game: string) {
             if (typeof param === "string") {
                 let tmp = param;
                 for (const [key, value] of Object.entries(argparams)) {
-                    tmp = tmp.replace(`$\{${key}\}`, value);
+                    tmp = tmp.replaceAll(`$\{${key}\}`, value);
                 }
                 cmd.push(tmp);
             } else {
@@ -399,7 +485,7 @@ export async function launchGame(basepath: string, game: string) {
                         ? param.value.map((p: string) => `${p}`).join(" ")
                         : `${param.value}`;
                     for (const [key, value] of Object.entries(argparams)) {
-                        tmp = tmp.replace(`$\{${key}\}`, value);
+                        tmp = tmp.replaceAll(`$\{${key}\}`, value);
                     }
                     cmd.push(tmp);
                 }
@@ -415,7 +501,7 @@ export async function launchGame(basepath: string, game: string) {
             if (typeof param === "string") {
                 let tmp = param;
                 for (const [key, value] of Object.entries(argparams)) {
-                    tmp = tmp.replace(`$\{${key}\}`, value);
+                    tmp = tmp.replaceAll(`$\{${key}\}`, value);
                 }
                 cmd.push(tmp);
             } else {
@@ -429,7 +515,7 @@ export async function launchGame(basepath: string, game: string) {
                         ? param.value.map((p: string) => `${p}`).join("|$|")
                         : `${param.value}`;
                     for (const [key, value] of Object.entries(argparams)) {
-                        tmp = tmp.replace(`$\{${key}\}`, value);
+                        tmp = tmp.replaceAll(`$\{${key}\}`, value);
                     }
                     cmd.push(...tmp.split("|$|"));
                 }
@@ -489,7 +575,7 @@ export async function launchGame(basepath: string, game: string) {
             if (param.startsWith("${")) {
                 let tmp = param;
                 for (const [key, value] of Object.entries(argparams)) {
-                    tmp = tmp.replace(`$\{${key}\}`, value);
+                    tmp = tmp.replaceAll(`$\{${key}\}`, value);
                 }
                 cmd.push(tmp);
             } else {
@@ -497,25 +583,41 @@ export async function launchGame(basepath: string, game: string) {
             }
         }
         // extras
-        cmd.push(...["--width",argparams.resolution_width,"--height",argparams.resolution_height]);
+        cmd.push(...[
+            "--width",
+            argparams.resolution_width,
+            "--height",
+            argparams.resolution_height,
+        ]);
     }
-    if(user.type==="offline"){}
+    if (user.type === "offline") {}
 
     let command = cmd.map((p) => {
         if (p.includes(" ")) {
             return `"${p}"`;
         } else return p;
     }).join(" ");
-    // console.log(command)
+    console.log(command)
     console.log(chalk.green(t("launch_starting")));
-    const javaexe=gconfig.java||config.get("java");
-    spawn(javaexe, cmd, {
+    const javaexe = gconfig.java || config.get("java");
+    console.log(javaexe);
+    const ps=spawn(javaexe, cmd, {
         stdio: "inherit",
         shell: false,
         cwd: basepath,
     });
+    ps.on("exit",(num)=>{
+        if(num!=0){
+            console.log(chalk.red("---"));
+            console.log(chalk.red(`exit code: ${num}`));
+            let javaVersionData=execSync(`"${javaexe}" --version`).toString();
+            console.log("help from launchers:")
+            console.log(javaVersionData)
+            console.log(`Recommended Java Version of this Minecraft Version: ${JSON.stringify(verJson.javaVersion)}`)
+        }
+    })
 }
 
-export function deleteGame(basepath: string,game:string){
-    fs.rmSync(nodePath.join(basepath,"versions",game),{recursive:true});
+export function deleteGame(basepath: string, game: string) {
+    fs.rmSync(nodePath.join(basepath, "versions", game), { recursive: true });
 }

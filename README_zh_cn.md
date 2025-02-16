@@ -1,6 +1,10 @@
 # QMCLI
 一个快速的Minecraft启动器命令行工具（正在开发中）
 
+::: warning
+这个启动器可能并不与官方启动器、HMCL、PCL等启动器相兼容！
+:::
+
 ## 安装
 ```bash
 $ npm install -g @tobylai/qmcli
@@ -40,7 +44,7 @@ Commands:
     - [X] 添加/移除用户
     - [X] 离线用户
     - [ ] mojang用户 (不再支持)
-    - [ ] microsoft用户
+    - [ ] microsoft用户(申请api中)
 - 设置
     - [X] 更改下载镜像
         - [X] 官方
@@ -53,7 +57,7 @@ Commands:
 - 模组
     - [ ] forge
     - [ ] neoforge
-    - [ ] fabric
+    - [X] fabric
     - [ ] quilt
 
 ## 常见问题

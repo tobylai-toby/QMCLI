@@ -3,6 +3,10 @@ English | [简体中文](README_zh_cn.md)
 
 A Quick Minecraft Launcher CLI (Work In Progress)
 
+::: warning
+This launcher might not be compatible with the official launcher, HMCL, PCL,etc.
+:::
+
 ## Installation
 ```bash
 $ npm install -g @tobylai/qmcli
@@ -55,7 +59,7 @@ many features are still working in progress
 - mods
     - [ ] forge
     - [ ] neoforge
-    - [ ] fabric
+    - [X] fabric
     - [ ] quilt
     - maybe more
 

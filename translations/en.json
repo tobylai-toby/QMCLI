@@ -32,6 +32,8 @@
     "cmd_versions_action_launch_desc": "launch the game",
     "cmd_versions_action_edit": "edit",
     "cmd_versions_action_edit_desc": "edit the game settings",
+    "cmd_versions_action_autoinstall":"auto install",
+    "cmd_versions_action_autoinstall_desc":"auto install mod loader",
     "cmd_versions_action_delete": "delete",
     "cmd_versions_action_delete_desc": "delete the game",
     "cmd_versions_action_edit_todo": "TODO",
@@ -143,5 +145,9 @@
     "launch_extracting_natives":"extracting natives...",
     "launch_moving_files":"moving files...",
     "launch_extracting_natives_done":"natives extracting done!",
-    "launch_starting":"starting minecraft..."
+    "launch_starting":"starting minecraft...",
+
+    "auto_install_prompt_already_installed_mod_loader":"already installed $1 mod loader",
+    "auto_install_prompt_select_mod_loader":"select a mod loader to install",
+    "auto_install_prompt_no_loaders_found":"no loader version found, this minecraft version may not be supported."
 }

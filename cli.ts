@@ -18,6 +18,7 @@ import {
 } from "./libs/users";
 import { t, TransType,installTrans,languages } from "./translations/translate";
 import { LauncherGameConfig, loadConfig, saveConfig } from "./libs/versionsConfig";
+import { autoInstallPrompt, detectModLoader } from "./libs/modLoaderInstaller";
 
 // load language
 const activedTrans: TransType = languages[config.get("lang")];
@@ -153,10 +154,11 @@ versionsCommand.command("list")
                         "utf-8",
                     ),
                 );
+                const detected=detectModLoader(verjson);
                 return {
                     value: g,
-                    name: g,
-                    description: t("cmd_versions_list_game_desc", g, verjson.id),
+                    name: g+(detected?` | (✅ ${detected})`:""),
+                    description: t("cmd_versions_list_game_desc", g, verjson.id)+(detected?` (✅ ${detected})`:""),
                     short: g,
                 };
             }),
@@ -173,6 +175,10 @@ versionsCommand.command("list")
                     value: "edit",
                     name: t("cmd_versions_action_edit"),
                     description: t("cmd_versions_action_edit_desc"),
+                },{
+                    value: "autoinstall",
+                    name: t("cmd_versions_action_autoinstall"),
+                    description: t("cmd_versions_action_autoinstall_desc"),
                 },
                 {
                     value: "delete",
@@ -196,7 +202,15 @@ versionsCommand.command("list")
             });
             saveConfig(expandTilde(pathSel),game,yaml.load(res) as LauncherGameConfig);
             console.log(chalk.green(t("cmd_versions_action_edit_saved")));
-        } else if (action === "delete") {
+        } else if(action==="autoinstall"){
+            const verJson=JSON.parse(
+                fs.readFileSync(
+                    `${expandTilde(pathSel)}/versions/${game}/${game}.json`,
+                    "utf-8",
+                ),
+            );
+            await autoInstallPrompt(expandTilde(pathSel),game,verJson.qmcli_ver_id||verJson.id);
+        }else if (action === "delete") {
             const confirm_ = await confirm({
                 message: t("cmd_versions_action_delete_confirm", game),
                 default: false,
