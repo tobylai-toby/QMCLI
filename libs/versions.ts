@@ -109,8 +109,7 @@ export async function fetchLibraries(
             let push = true;
             if(!sha1&&fs.existsSync(filename)){
                 push=false;
-            }
-            if (fs.existsSync(filename)) {
+            }else if (fs.existsSync(filename)) {
                 // check sha1 of existing file
                 const content: Uint8Array = new Uint8Array(
                     fs.readFileSync(filename),
