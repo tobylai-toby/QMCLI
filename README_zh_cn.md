@@ -1,9 +1,8 @@
 # QMCLI
 一个快速的Minecraft启动器命令行工具（正在开发中）
 
-::: warning
-这个启动器可能并不与官方启动器、HMCL、PCL等启动器相兼容！
-:::
+> [!WARNING]
+> 这个启动器可能并不与官方启动器、HMCL、PCL等启动器相兼容！
 
 ## 安装
 ```bash

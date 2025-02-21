@@ -3,9 +3,8 @@ English | [简体中文](README_zh_cn.md)
 
 A Quick Minecraft Launcher CLI (Work In Progress)
 
-::: warning
-This launcher might not be compatible with the official launcher, HMCL, PCL,etc.
-:::
+> [!WARNING]
+> This launcher might not be compatible with the official launcher, HMCL, PCL,etc.
 
 ## Installation
 ```bash
