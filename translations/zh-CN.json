@@ -138,5 +138,16 @@
     "auto_install_prompt_already_installed_mod_loader": "已安装 $1 模组加载器",
     "auto_install_prompt_select_mod_loader": "选择要安装的模组加载器",
     "auto_install_prompt_select_loader_version": "select a version",
-    "auto_install_prompt_no_loaders_found": "未找到加载器版本，此Minecraft版本可能不受支持。"
+    "auto_install_prompt_no_loaders_found": "未找到加载器版本，此Minecraft版本可能不受支持。",
+    "auto_install_select_action_prompt": "select an action:",
+    "auto_install_select_action_info": "info",
+    "auto_install_select_action_info_desc": "show info of the mod loader",
+    "auto_install_select_action_delete": "delete",
+    "auto_install_select_action_delete_desc": "delete the mod loader",
+    "auto_install_info_loader": "loader: $1",
+    "auto_install_info_err_no_patches": "no \"patches\" properties found",
+    "auto_install_info_err_no_patches_named": "no \"patches\" named $1 found",
+    "auto_install_version_loader": "version: $1",
+    "auto_install_confirm_delete": "are you sure you want to delete this mod loader?",
+    "err_failed": "failed!"
 }
