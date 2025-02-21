@@ -159,7 +159,7 @@ versionsCommand.command("list")
                 return {
                     value: g,
                     name: g+(detected?` | (✅ ${detected})`:""),
-                    description: t("cmd_versions_list_game_desc", g, verjson.id)+(detected?` (✅ ${detected})`:""),
+                    description: t("cmd_versions_list_game_desc", g, versionsMod.getVersionFromVerJson(verjson))+(detected?` (✅ ${detected})`:""),
                     short: g,
                 };
             }),
@@ -210,7 +210,7 @@ versionsCommand.command("list")
                     "utf-8",
                 ),
             );
-            await autoInstallPrompt(expandTilde(pathSel),game,verJson.qmcli_ver_id||verJson.id);
+            await autoInstallPrompt(expandTilde(pathSel),game,versionsMod.getVersionFromVerJson(verJson));
         }else if (action === "delete") {
             const confirm_ = await confirm({
                 message: t("cmd_versions_action_delete_confirm", game),
@@ -337,7 +337,7 @@ pathsCommand.command("list")
                     ),
                 );
                 console.log(
-                    chalk.blue(t("cmd_settings_paths_list_info_game_entry", g, verjson.id)),
+                    chalk.blue(t("cmd_settings_paths_list_info_game_entry", g, versionsMod.getVersionFromVerJson(verjson))),
                 );
             }
         } else if (action === "remove") {

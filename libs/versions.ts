@@ -5,7 +5,7 @@ import { m } from "./mirrors";
 import * as fs from "node:fs";
 import * as nodePath from "node:path";
 import McLauncherProfiles from "../mc/launcher_profiles.json";
-import { checkRules, getArchSuffix, getOs } from "./utils";
+import { checkRules, getArchSuffix, getOs, mergeVerJsonPatches } from "./utils";
 // import zl from "zip-lib";
 import AdmZip from "adm-zip";
 import jsSHA from "jssha";
@@ -183,6 +183,17 @@ export async function fetchLibraries(
     };
 }
 
+export function getVersionFromVerJson(verJson: any){
+    if(verJson.qmcli_ver_id!==undefined){
+        return verJson.qmcli_ver_id;
+    }
+    if(verJson.patches){
+        const patch=verJson.patches.find((p:any)=>p.id=="game");
+        if(patch&&patch.version)return patch.version;
+    }
+    return verJson.id;
+}
+
 export async function downloadVersion(
     verUrl: string,
     basepath: string,
@@ -191,10 +202,19 @@ export async function downloadVersion(
     const versionPath = `${basepath}/versions/${gameName}`;
     createPathIfNotExists(versionPath);
     const verInfo = await (await fetch(verUrl)).json();
+    const originalVerInfo=JSON.parse(JSON.stringify(verInfo))
     verInfo.qmcli_ver_id=verInfo.id;
+    verInfo.patches=verInfo.patches||[];
+    verInfo.patches.push({
+        ...originalVerInfo,
+        id:"game",
+        priority:0,
+        version: verInfo.id
+    });
+    verInfo.id=gameName;
     fs.writeFileSync(
         `${versionPath}/${gameName}.json`,
-        JSON.stringify(verInfo),
+        JSON.stringify(verInfo,null,4),
     );
     const tasks: DownloadTask[] = [];
     const assets = await fetchAsset(verInfo, basepath, gameName);
@@ -283,11 +303,12 @@ export async function launchGame(basepath: string, game: string) {
             short: `${p.name} (${t("user_type." + p.type)})`,
         })),
     });
-    const verJson = JSON.parse(
+    let verJson = JSON.parse(
         fs.readFileSync(`${basepath}/versions/${game}/${game}.json`, {
             encoding: "utf-8",
         }),
     );
+    verJson=mergeVerJsonPatches(verJson,true);
     // fetch asset
     console.log(chalk.blue(t("launch_fetching_asset")));
     const { tasks, totalSize } = await fetchAsset(verJson, basepath, game);

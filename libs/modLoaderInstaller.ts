@@ -8,7 +8,8 @@ import { fetchLibraries } from "./versions";
 import { DownloadQueue } from "./downloader";
 import { t } from "../translations/translate";
 import chalk from "chalk";
-import { select, Separator } from "@inquirer/prompts";
+import { confirm, select, Separator } from "@inquirer/prompts";
+import { checkRules, mergeVerJsonPatches } from "./utils";
 // mod loader installers (eg forge,neoforge,fabric,quilt)
 
 export interface InstallerEntry {
@@ -154,18 +155,22 @@ fs.writeFileSync("C:\\Users\\Toby\\.minecraft\\versions\\1.17.1\\1.17.1-merged.j
 // \libraries\net\minecraft\client\1.20-20230608.053357\client-1.20-20230608.053357-mappings.txt
 */
 class FabricInstaller extends BaseInstaller {
-    static fabricapi="https://meta.fabricmc.net/v2";
-    static headers={
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
-    }
+    static loader = "fabric";
+    static fabricapi = "https://meta.fabricmc.net/v2";
+    static headers = {
+        "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+    };
     static async getInstallersFromMcVersion(
         mcVersion: string,
     ): Promise<InstallerEntry[] | null> {
         const apiSupportedMcVersions = m(
-            this.fabricapi+"/versions/game",
+            this.fabricapi + "/versions/game",
         );
         const supportedMcVersions =
-            (await (await fetch(apiSupportedMcVersions,{headers:this.headers})).json() as {
+            (await (await fetch(apiSupportedMcVersions, {
+                headers: this.headers,
+            })).json() as {
                 version: string;
                 stable: boolean;
             }[]).map((v) => v.version);
@@ -176,9 +181,10 @@ class FabricInstaller extends BaseInstaller {
             `${this.fabricapi}/versions/loader/${mcVersion}`,
         );
         const loaderVersions =
-            (await (await fetch(apiLoaderVersions,{headers:this.headers})).json()) as {
-                loader: { version: string; stable: boolean };
-            }[];
+            (await (await fetch(apiLoaderVersions, { headers: this.headers }))
+                .json()) as {
+                    loader: { version: string; stable: boolean };
+                }[];
         return loaderVersions.map((v) => ({
             version: v.loader.version,
             mcversion: mcVersion,
@@ -199,7 +205,8 @@ class FabricInstaller extends BaseInstaller {
         const apiProfile = m(
             `${this.fabricapi}/versions/loader/${entry.mcversion}/${entry.version}/profile/json`,
         );
-        const profileJson = await (await fetch(apiProfile,{headers:this.headers})).json();
+        const profileJson =
+            await (await fetch(apiProfile, { headers: this.headers })).json();
         const originalVerJson = JSON.parse(
             fs.readFileSync(`${basepath}/versions/${game}/${game}.json`, {
                 encoding: "utf-8",
@@ -213,33 +220,36 @@ class FabricInstaller extends BaseInstaller {
             profileJson.libraries[i] = {
                 "downloads": {
                     "artifact": {
-                        "path":
-                            path,
+                        "path": path,
                         "sha1": profileJson.libraries[i].sha1,
                         "size": profileJson.libraries[i].size,
-                        "url": m(profileJson.libraries[i].url+path)
+                        "url": profileJson.libraries[i].url + path,
                     },
                 },
                 "name": profileJson.libraries[i].name,
             };
-            // check if the original has the same library
-            let lib=profileJson.libraries[i].name.split(":").slice(0,2).join(":");
-            let foundIndex=originalVerJson.libraries.findIndex((l:any)=>l.name.split(":").slice(0,2).join(":")==lib);
-            if(foundIndex!==-1){
-                console.log("removed duplicated library: "+originalVerJson.libraries[foundIndex].name)
-                originalVerJson.libraries.splice(foundIndex,1);
-            }
         }
-        delete profileJson.id;
         const merged = deepmerge(originalVerJson, profileJson);
-        
-        fs.copyFileSync(
-            `${basepath}/versions/${game}/${game}.json`,
-            `${basepath}/versions/${game}/${game}-original.json`,
-        );
+        // patches original verJson
+        originalVerJson.patches = originalVerJson.patches || [];
+        originalVerJson.patches.push({
+            ...profileJson,
+            id: this.loader,
+            priority: 30000,
+            version: entry.version,
+        });
+
+        if (
+            !fs.existsSync(`${basepath}/versions/${game}/${game}-original.json`)
+        ) {
+            fs.copyFileSync(
+                `${basepath}/versions/${game}/${game}.json`,
+                `${basepath}/versions/${game}/${game}-original.json`,
+            );
+        }
         fs.writeFileSync(
             `${basepath}/versions/${game}/${game}.json`,
-            JSON.stringify(merged, null, 4),
+            JSON.stringify(originalVerJson, null, 4),
             { encoding: "utf-8" },
         );
         const { tasks, totalSize } = await fetchLibraries(
@@ -256,69 +266,154 @@ class FabricInstaller extends BaseInstaller {
         }
     }
 }
-class QuiltInstaller extends FabricInstaller{
-    static fabricapi="https://meta.quiltmc.org/v3";
+class QuiltInstaller extends FabricInstaller {
+    static loader = "quilt";
+    static fabricapi = "https://meta.quiltmc.org/v3";
 }
-type LoaderTypes="fabric"|"forge"|"quilt"|"neoforged";
-// (async () => {
-//     const ver =
-//         (await FabricInstaller.getInstallersFromMcVersion("1.21.4"))![0];
-//     await FabricInstaller.install(ver, "C:\\Users\\Toby\\.minecraft", "1.21.4");
-// })();
+type LoaderTypes = "fabric" | "forge" | "quilt" | "neoforged";
+const installers: Record<LoaderTypes, typeof BaseInstaller> = {
+    fabric: FabricInstaller,
+    forge: BaseInstaller, // TODO
+    quilt: QuiltInstaller,
+    neoforged: BaseInstaller, // TODO
+};
 
-const installers:Record<LoaderTypes,typeof BaseInstaller>={
-    fabric:FabricInstaller,
-    forge:BaseInstaller,// TODO
-    quilt:QuiltInstaller,// TODO
-    neoforged:BaseInstaller,// TODO
-}
-
-export function detectModLoader(verJson:any):LoaderTypes|"unknown"|false{
-    if(verJson.inheritsFrom){
-        if(verJson.mainClass.includes("fabricmc")){
-            return "fabric";
-        }else if(verJson.mainClass.includes("quiltmc")){
-            return "quilt";
-        }else if(verJson.arguments.game.includes("forgeclient")){
-            return "forge";
-        }else if(verJson.arguments.game.includes("neoforgeclient")){
-            return "neoforged";
-        }
-        return "unknown";
-    }else{
-        return false;
+export function detectModLoader(verJson: any): LoaderTypes | "unknown" | false {
+    verJson = mergeVerJsonPatches(verJson);
+    if (verJson.mainClass.includes("fabricmc")) {
+        return "fabric";
+    } else if (verJson.mainClass.includes("quiltmc")) {
+        return "quilt";
+    } else if (verJson.arguments.game.includes("forgeclient")) {
+        return "forge";
+    } else if (verJson.arguments.game.includes("neoforgeclient")) {
+        return "neoforged";
     }
+
+    return false;
 }
 
-export async function autoInstallPrompt(basepath:string,game:string,mcversion:string) {
-    const gamePath=nodePath.join(basepath,"versions",game);
-    const verJson=JSON.parse(fs.readFileSync(nodePath.join(gamePath,game+".json"),{encoding:"utf-8"})) as any;
-    const detected=detectModLoader(verJson);
-    if(detected){
-        console.log(chalk.red(t("auto_install_prompt_already_installed_mod_loader",detected)));
-        return;
-    }
-    const loader=await select<LoaderTypes>({
+export async function autoInstallPrompt(
+    basepath: string,
+    game: string,
+    mcversion: string,
+) {
+    const gamePath = nodePath.join(basepath, "versions", game);
+    const verJson = JSON.parse(
+        fs.readFileSync(nodePath.join(gamePath, game + ".json"), {
+            encoding: "utf-8",
+        }),
+    ) as any;
+    const detected = detectModLoader(verJson);
+    // if (detected) {
+    //     console.log(
+    //         chalk.red(
+    //             t("auto_install_prompt_already_installed_mod_loader", detected),
+    //         ),
+    //     );
+    //     return;
+    // }
+    const loader = await select<LoaderTypes>({
         message: t("auto_install_prompt_select_mod_loader"),
         choices: [
-            {name:"Fabric",value:"fabric"},
-            {name:"Quilt",value:"quilt"},
+            {
+                name: `${detected == "fabric" ? "✅ " : ""}Fabric`,
+                value: "fabric",
+                disabled: detected !== false && detected != "fabric",
+            },
+            {
+                name: `${detected == "quilt" ? "✅ " : ""}Quilt`,
+                value: "quilt",
+                disabled: detected !== false && detected != "quilt",
+            },
             new Separator(),
-            {name:"Forge ❌todo",value:"forge"},
-            {name:"NeoForge ❌todo",value:"neoforged"},
-        ]
+            {
+                name: `${detected == "forge" ? "✅ " : ""}Forge ❌todo`,
+                value: "forge",
+                disabled: detected !== false && detected != "forge" || true, // TODO
+            },
+            {
+                name: `${detected == "neoforged" ? "✅ " : ""}NeoForge ❌todo`,
+                value: "neoforged",
+                disabled: detected !== false && detected != "neoforged" || true, // TODO
+            },
+        ],
     });
-    const installer=installers[loader];
-    const loader_versions=await installer.getInstallersFromMcVersion(mcversion);
-    if(!loader_versions){
-        console.log(chalk.red(t("auto_install_prompt_no_loaders_found")));
-        return;
+    const installer = installers[loader];
+    if (!detected) {
+        const loader_versions = await installer.getInstallersFromMcVersion(
+            mcversion,
+        );
+        if (!loader_versions) {
+            console.log(chalk.red(t("auto_install_prompt_no_loaders_found")));
+            return;
+        }
+        const loader_version = await select({
+            message: t("auto_install_prompt_select_loader_version"),
+            choices: loader_versions.map((v) => ({
+                name: v.version,
+                value: v,
+            })),
+        });
+        console.log(chalk.green(t("operation_starting")));
+        await installer.install(loader_version, basepath, game);
+        console.log(chalk.green(t("operation_completed")));
+    } else {
+        const action = await select({
+            message: t("auto_install_select_action_prompt"),
+            choices: [
+                {
+                    name: t("auto_install_select_action_info"),
+                    value: "info",
+                    description: t("auto_install_select_action_info_desc"),
+                },
+                {
+                    name: t("auto_install_select_action_delete"),
+                    value: "delete",
+                    description: t("auto_install_select_action_delete_desc"),
+                },
+            ],
+        });
+        if (action == "info") {
+            console.log(chalk.green(t("auto_install_info_loader",detected)));
+            if (!verJson.patches) {
+                console.log(chalk.yellow(t("auto_install_info_err_no_patches")));
+            } else {
+                const patch = verJson.patches.find((p: any) =>
+                    p.id == detected
+                );
+                if (!patch) {
+                    console.log(
+                        chalk.yellow(t("auto_install_info_err_no_patches_named",detected)),
+                    );
+                    return;
+                }
+                console.log(chalk.green(t("auto_install_version_loader",patch.version)));
+            }
+        } else if (action == "delete") {
+            const confirm_ = await confirm({
+                message: t("auto_install_confirm_delete"),
+                default: false,
+            });
+            if (confirm_) {
+                // rm patches named
+                const patchIndex = verJson.patches.findIndex((p: any) =>
+                    p.id == detected
+                );
+                if (patchIndex == -1) {
+                    console.log(
+                        chalk.red(t("auto_install_info_err_no_patches_named",detected)),
+                    );
+                    console.log(chalk.red(t("err_failed")));
+                    return;
+                }
+                verJson.patches.splice(patchIndex, 1);
+                fs.writeFileSync(
+                    nodePath.join(gamePath, game + ".json"),
+                    JSON.stringify(verJson, null, 4),
+                );
+                console.log(chalk.green(t("operation_completed")));
+            }
+        }
     }
-    const loader_version=await select({
-        message: t("auto_install_prompt_select_loader_version"),
-        choices: loader_versions.map((v)=>({name:v.version,value:v}))
-    });
-    console.log(chalk.green(t("operation_starting")))
-    await installer.install(loader_version,basepath,game);
-    console.log(chalk.green(t("operation_completed")))
 }

@@ -1,6 +1,7 @@
 import * as os from "node:os";
 import * as path from "node:path";
 import arch from "arch";
+import { deepmerge } from "deepmerge-ts";
 export function isValidFileName(filename: string): boolean {
     // 基础检查
     if (!filename || filename.length === 0 || filename.length > 255) {
@@ -109,4 +110,37 @@ export function checkRules(rules: any[], features: any = {}): boolean {
 
     // 没有规则匹配时默认返回false
     return false;
+}
+
+export function mergeVerJsonPatches(verJson: any, rm_dup_libs = false) {
+    if (!verJson.patches) return verJson;
+    let newVerJson = JSON.parse(JSON.stringify(verJson));
+    delete newVerJson.patches;
+    (verJson.patches as any[]).sort((a: any, b: any) => a.priority - b.priority)
+        .forEach((x: any) => {
+            let y = JSON.parse(JSON.stringify(x));
+            if(y.id=="game")return;
+            delete y.id;
+            delete y.version;
+            delete y.priority;
+            if (rm_dup_libs) {
+                for (let i in y.libraries) {
+                    let lib = y.libraries[i].name.split(":").slice(0, 2).join(
+                        ":",
+                    );
+                    let foundIndex = newVerJson.libraries.findIndex((l: any) =>
+                        l.name.split(":").slice(0, 2).join(":") == lib
+                    );
+                    if (foundIndex !== -1) {
+                        console.log(
+                            "disabled duplicated library: " +
+                                newVerJson.libraries[foundIndex].name,
+                        );
+                        newVerJson.libraries.splice(foundIndex, 1);
+                    }
+                }
+            }
+            newVerJson = deepmerge(newVerJson, y);
+        });
+    return newVerJson;
 }
