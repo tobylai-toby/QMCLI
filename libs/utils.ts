@@ -112,35 +112,60 @@ export function checkRules(rules: any[], features: any = {}): boolean {
     return false;
 }
 
-export function mergeVerJsonPatches(verJson: any, rm_dup_libs = false) {
-    if (!verJson.patches) return verJson;
-    let newVerJson = JSON.parse(JSON.stringify(verJson));
-    delete newVerJson.patches;
-    (verJson.patches as any[]).sort((a: any, b: any) => a.priority - b.priority)
-        .forEach((x: any) => {
-            let y = JSON.parse(JSON.stringify(x));
-            if(y.id=="game")return;
-            delete y.id;
-            delete y.version;
-            delete y.priority;
-            if (rm_dup_libs) {
-                for (let i in y.libraries) {
-                    let lib = y.libraries[i].name.split(":").slice(0, 2).join(
-                        ":",
-                    );
-                    let foundIndex = newVerJson.libraries.findIndex((l: any) =>
-                        l.name.split(":").slice(0, 2).join(":") == lib
-                    );
-                    if (foundIndex !== -1) {
-                        console.log(
-                            "disabled duplicated library: " +
-                                newVerJson.libraries[foundIndex].name,
-                        );
-                        newVerJson.libraries.splice(foundIndex, 1);
-                    }
-                }
-            }
-            newVerJson = deepmerge(newVerJson, y);
-        });
-    return newVerJson;
+// export function mergeVerJsonPatches(verJson: any, rm_dup_libs = false) {
+//     if (!verJson.patches) return verJson;
+//     let newVerJson = JSON.parse(JSON.stringify(verJson));
+//     delete newVerJson.patches;
+//     (verJson.patches as any[]).sort((a: any, b: any) => a.priority - b.priority)
+//         .forEach((x: any) => {
+//             let y = JSON.parse(JSON.stringify(x));
+//             if(y.id=="game")return;
+//             delete y.id;
+//             delete y.version;
+//             delete y.priority;
+//             if (rm_dup_libs) {
+//                 for (let i in y.libraries) {
+//                     let lib = y.libraries[i].name.split(":").slice(0, 2).join(
+//                         ":",
+//                     );
+//                     let foundIndex = newVerJson.libraries.findIndex((l: any) =>
+//                         l.name.split(":").slice(0, 2).join(":") == lib
+//                     );
+//                     if (foundIndex !== -1) {
+//                         console.log(
+//                             "disabled duplicated library: " +
+//                                 newVerJson.libraries[foundIndex].name,
+//                         );
+//                         newVerJson.libraries.splice(foundIndex, 1);
+//                     }
+//                 }
+//             }
+//             newVerJson = deepmerge(newVerJson, y);
+//         });
+//     return newVerJson;
+// }
+
+export function rmDupLibs(libraries: any[]) {
+    let libs: any[] = [];
+    let lib_names: string[] = [];
+    libraries.forEach((x: any) => {
+        let libname = x.name.split(":").slice(0, 2).join(":");
+        if (x.name.includes("natives")) {
+            libs.push(x);
+        } else if (!lib_names.includes(libname)) {
+            libs.push(x);
+            lib_names.push(libname);
+        } else {
+            console.log("disabled duplicated library: " + x.name);
+        }
+    });
+    return libs;
+}
+
+export function parseLibNameToPath(name: string) {
+    const splitted = name.split(":");
+    const path = splitted[0].replaceAll(".", "/") + "/" + splitted[1] +
+        "/" + splitted[2] + "/" +
+        splitted.slice(1, splitted.length).join("-") + ".jar";
+    return path;
 }

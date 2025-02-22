@@ -9,8 +9,23 @@ import { DownloadQueue } from "./downloader";
 import { t } from "../translations/translate";
 import chalk from "chalk";
 import { confirm, select, Separator } from "@inquirer/prompts";
-import { checkRules, mergeVerJsonPatches } from "./utils";
+import { checkRules, parseLibNameToPath } from "./utils";
 // mod loader installers (eg forge,neoforge,fabric,quilt)
+
+export function addPatch(verJson: any, patch: any,meta:any) {
+    // 先deepmerge，然后加到patches里
+    verJson = deepmerge(verJson, patch);
+    verJson.patches = verJson.patches || [];
+    verJson.patches.push({...patch,...meta});
+    return verJson;
+}
+
+export function removePatch(verJson: any, patch: any) {
+    // 提取patches中的id=game，把其余patches重新复制到新的patches上（去除patch）
+    let oriVerJson = JSON.parse(JSON.stringify(verJson.patches.find((p: any) => p.id == "game")));
+    oriVerJson.patches = JSON.parse(JSON.stringify(verJson.patches.filter((p: any) => p != patch)));
+    return oriVerJson;
+}
 
 export interface InstallerEntry {
     url?: string;
@@ -190,13 +205,6 @@ class FabricInstaller extends BaseInstaller {
             mcversion: mcVersion,
         }));
     }
-    static _parseLibNameToPath(name: string) {
-        const splitted = name.split(":");
-        const path = splitted[0].replaceAll(".", "/") + "/" + splitted[1] +
-            "/" + splitted[2] + "/" +
-            splitted.slice(1, splitted.length).join("-") + ".jar";
-        return path;
-    }
     static async install(
         entry: InstallerEntry,
         basepath: string,
@@ -207,14 +215,14 @@ class FabricInstaller extends BaseInstaller {
         );
         const profileJson =
             await (await fetch(apiProfile, { headers: this.headers })).json();
-        const originalVerJson = JSON.parse(
+        let originalVerJson = JSON.parse(
             fs.readFileSync(`${basepath}/versions/${game}/${game}.json`, {
                 encoding: "utf-8",
             }),
         ) as any;
         // parse the json and convert the libraries to normal
         for (let i = 0; i < profileJson.libraries.length; i++) {
-            const path = this._parseLibNameToPath(
+            const path = parseLibNameToPath(
                 profileJson.libraries[i].name,
             );
             profileJson.libraries[i] = {
@@ -232,8 +240,8 @@ class FabricInstaller extends BaseInstaller {
         const merged = deepmerge(originalVerJson, profileJson);
         // patches original verJson
         originalVerJson.patches = originalVerJson.patches || [];
-        originalVerJson.patches.push({
-            ...profileJson,
+        // originalVerJson.patches.push();
+        originalVerJson = addPatch(originalVerJson, profileJson, {
             id: this.loader,
             priority: 30000,
             version: entry.version,
@@ -279,17 +287,28 @@ const installers: Record<LoaderTypes, typeof BaseInstaller> = {
 };
 
 export function detectModLoader(verJson: any): LoaderTypes | "unknown" | false {
-    verJson = mergeVerJsonPatches(verJson);
-    if (verJson.mainClass.includes("fabricmc")) {
+    // verJson = mergeVerJsonPatches(verJson);
+    for (const patch of verJson.patches||[]) {
+        if (patch.mainClass.includes("fabricmc")) {
+            return "fabric";
+        } else if (patch.mainClass.includes("quiltmc")) {
+            return "quilt";
+        } else if (patch.arguments.game.includes("forgeclient")) {
+            return "forge";
+        } else if (patch.arguments.game.includes("neoforgeclient")) {
+            return "neoforged";
+        }
+    }
+    let patch = verJson;
+    if (patch.mainClass.includes("fabricmc")) {
         return "fabric";
-    } else if (verJson.mainClass.includes("quiltmc")) {
+    } else if (patch.mainClass.includes("quiltmc")) {
         return "quilt";
-    } else if (verJson.arguments.game.includes("forgeclient")) {
+    } else if (patch.arguments.game.includes("forgeclient")) {
         return "forge";
-    } else if (verJson.arguments.game.includes("neoforgeclient")) {
+    } else if (patch.arguments.game.includes("neoforgeclient")) {
         return "neoforged";
     }
-
     return false;
 }
 
@@ -299,7 +318,7 @@ export async function autoInstallPrompt(
     mcversion: string,
 ) {
     const gamePath = nodePath.join(basepath, "versions", game);
-    const verJson = JSON.parse(
+    let verJson = JSON.parse(
         fs.readFileSync(nodePath.join(gamePath, game + ".json"), {
             encoding: "utf-8",
         }),
@@ -375,20 +394,31 @@ export async function autoInstallPrompt(
             ],
         });
         if (action == "info") {
-            console.log(chalk.green(t("auto_install_info_loader",detected)));
+            console.log(chalk.green(t("auto_install_info_loader", detected)));
             if (!verJson.patches) {
-                console.log(chalk.yellow(t("auto_install_info_err_no_patches")));
+                console.log(
+                    chalk.yellow(t("auto_install_info_err_no_patches")),
+                );
             } else {
                 const patch = verJson.patches.find((p: any) =>
                     p.id == detected
                 );
                 if (!patch) {
                     console.log(
-                        chalk.yellow(t("auto_install_info_err_no_patches_named",detected)),
+                        chalk.yellow(
+                            t(
+                                "auto_install_info_err_no_patches_named",
+                                detected,
+                            ),
+                        ),
                     );
                     return;
                 }
-                console.log(chalk.green(t("auto_install_version_loader",patch.version)));
+                console.log(
+                    chalk.green(
+                        t("auto_install_version_loader", patch.version),
+                    ),
+                );
             }
         } else if (action == "delete") {
             const confirm_ = await confirm({
@@ -402,12 +432,19 @@ export async function autoInstallPrompt(
                 );
                 if (patchIndex == -1) {
                     console.log(
-                        chalk.red(t("auto_install_info_err_no_patches_named",detected)),
+                        chalk.red(
+                            t(
+                                "auto_install_info_err_no_patches_named",
+                                detected,
+                            ),
+                        ),
                     );
                     console.log(chalk.red(t("err_failed")));
                     return;
                 }
-                verJson.patches.splice(patchIndex, 1);
+
+                // verJson.patches.splice(patchIndex, 1);
+                verJson = removePatch(verJson, verJson.patches[patchIndex]);
                 fs.writeFileSync(
                     nodePath.join(gamePath, game + ".json"),
                     JSON.stringify(verJson, null, 4),
